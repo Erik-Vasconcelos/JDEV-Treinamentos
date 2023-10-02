@@ -1,0 +1,5 @@
+pessoa1;pessoa1gmail.com;20
+pessoa2;pessoa2gmail.com;50
+pessoa3;pessoa3gmail.com;20
+
+pessoa4;pessoa4gmail.com;54

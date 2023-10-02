@@ -1,0 +1,22 @@
+[
+  {
+    "nome": "pessoa1",
+    "email": "pessoa1gmail.com",
+    "idade": 20
+  },
+  {
+    "nome": "pessoa2",
+    "email": "pessoa2gmail.com",
+    "idade": 50
+  },
+  {
+    "nome": "pessoa3",
+    "email": "pessoa3gmail.com",
+    "idade": 20
+  },
+  {
+    "nome": "Tirineu Francisco",
+    "email": "tirineugmail.com",
+    "idade": 38
+  }
+]
