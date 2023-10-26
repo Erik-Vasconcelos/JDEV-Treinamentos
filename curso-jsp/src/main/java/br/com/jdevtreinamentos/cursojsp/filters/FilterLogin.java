@@ -1,29 +1,38 @@
 package br.com.jdevtreinamentos.cursojsp.filters;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
+import br.com.jdevtreinamentos.cursojsp.connection.FabricaConexao;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebFilter(urlPatterns = {"/principal/*" })
+@WebFilter(urlPatterns = { "/principal/*" })
 public class FilterLogin extends HttpFilter implements Filter {
 
 	private static final long serialVersionUID = 1L;
+	private Connection conexao = null;
 
 	public FilterLogin() {
 	}
 
 	/* Finaliza os processos quando o servidor para */
 	public void destroy() {
+		try {
+			conexao.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/*
@@ -32,21 +41,36 @@ public class FilterLogin extends HttpFilter implements Filter {
 	 */
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
+
 		HttpServletRequest requestHttp = (HttpServletRequest) request;
 		HttpSession session = requestHttp.getSession();
+		HttpServletResponse resposta = (HttpServletResponse) response;
+		try {
 
-		String usuario = (String) session.getAttribute("usuario"); 
-		String urlAutenticar = requestHttp.getServletPath();
+			String usuario = (String) session.getAttribute("usuario");
+			String urlAutenticar = requestHttp.getServletPath();
 
-		if ((usuario == null || usuario.isBlank()) && !urlAutenticar.equals("/principal/ServletLogin")) {
+			if ((usuario == null || usuario.isBlank()) && !urlAutenticar.equals("/index.jsp")) {
 
-			RequestDispatcher redirecionador = requestHttp.getRequestDispatcher("/index.jsp?url=" + urlAutenticar);
-			request.setAttribute("msg", "Realize o login!");
-			redirecionador.forward(request, response);
-			
-			return;
-		} else {
-			chain.doFilter(request, response);
+				requestHttp.getSession().setAttribute("msg", "Realize o login!");
+				resposta.sendRedirect(requestHttp.getContextPath() + "/index.jsp");
+
+				// return 'opcional'. passa pelo resto do código abaixo, como não tem nada que
+				// interfere, ficou sem.
+			} else {
+				chain.doFilter(request, response);
+			}
+			conexao.commit(); // Realiza de fato as alterações feitas
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			requestHttp.getSession().setAttribute("msg", e.getMessage());
+			resposta.sendRedirect(requestHttp.getContextPath() + "/erro.jsp");
+			try {
+				conexao.rollback(); // Desfaz as alterações feitas no banco
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 		}
 
 	}
@@ -56,6 +80,7 @@ public class FilterLogin extends HttpFilter implements Filter {
 	 * banco
 	 */
 	public void init(FilterConfig fConfig) throws ServletException {
+		conexao = FabricaConexao.getConnection();
 	}
 
 }

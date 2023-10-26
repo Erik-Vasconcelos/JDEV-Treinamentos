@@ -1,0 +1,22 @@
+
+CREATE DATABASE "curso-jsp"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'Portuguese_Brazil.1252'
+    LC_CTYPE = 'Portuguese_Brazil.1252'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+CREATE TABLE login(
+	login character varying(200),
+	senha character varying(200),
+	CONSTRAINT un_login UNIQUE (login)
+);
+
+ALTER TABLE login OWNER TO postgres;
+
+INSERT INTO public.login(
+	login, senha)
+	VALUES ('admin', 'admin');
