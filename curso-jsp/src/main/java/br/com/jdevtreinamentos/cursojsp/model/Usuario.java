@@ -71,5 +71,9 @@ public class Usuario {
 	public void setSenha(String senha) {
 		this.senha = senha;
 	}
+	
+	public boolean isNovo() {
+		return this.id == null || this.id.equals(0L);
+	}
 
 }
