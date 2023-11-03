@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import br.com.jdevtreinamentos.cursojsp.connection.FabricaConexao;
+import br.com.jdevtreinamentos.cursojsp.model.Usuario;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -47,11 +48,13 @@ public class FilterLogin extends HttpFilter implements Filter {
 		HttpServletResponse resposta = (HttpServletResponse) response;
 		try {
 
-			String usuario = (String) session.getAttribute("usuario");
+			Usuario usuario = (Usuario)session.getAttribute("usuario");
+			String loginUsuario = usuario != null ? usuario.getLogin() : null;
 			String urlAutenticar = requestHttp.getServletPath();
 
-			if ((usuario == null || usuario.isBlank()) && !urlAutenticar.equals("/index.jsp")) {
-
+			if ((loginUsuario == null || loginUsuario.isBlank()) && !urlAutenticar.equals("/index.jsp")) {
+				
+				requestHttp.getSession().setAttribute("url", requestHttp.getServletPath());
 				requestHttp.getSession().setAttribute("msg", "Realize o login!");
 				resposta.sendRedirect(requestHttp.getContextPath() + "/index.jsp");
 

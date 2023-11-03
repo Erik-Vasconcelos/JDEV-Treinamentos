@@ -37,7 +37,7 @@ body{
 	
 		<form action="login" method="post" class="g-3 needs-validation mt-3 mb-4 form"
 			novalidate>
-			<input type="hidden" value="<%=request.getParameter("url")%>"
+			<input type="hidden" value="<%=session.getAttribute("url")%>"
 				name="url">
 			<div class="mb-3">
 				<label for="inputLogin" class="form-label">Login</label> <input

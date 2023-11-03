@@ -1,3 +1,4 @@
+<%@page import="br.com.jdevtreinamentos.cursojsp.model.Usuario"%>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
 
@@ -62,7 +63,7 @@
 									src="assets/images/avatar-2.jpg"
 									alt="Generic placeholder image">
 								<div class="media-body">
-									<h5 class="notification-user"><%=session.getAttribute("usuario")%></h5>
+									<h5 class="notification-user"><%=((Usuario)session.getAttribute("usuario")).getLogin()%></h5>
 									<p class="notification-msg">Lorem ipsum dolor sit amet,
 										consectetuer elit.</p>
 									<span class="notification-time">30 minutes ago</span>
@@ -99,7 +100,7 @@
 				<li class="user-profile header-notification"><a href="#!"
 					class="waves-effect waves-light"> <img
 						src="assets/images/avatar-4.jpg" class="img-radius"
-						alt="User-Profile-Image"> <span><%=session.getAttribute("usuario")%></span> <i
+						alt="User-Profile-Image"> <span><%=((Usuario)session.getAttribute("usuario")).getLogin()%></span> <i
 						class="ti-angle-down"></i>
 				</a>
 					<ul class="show-notification profile-notification">

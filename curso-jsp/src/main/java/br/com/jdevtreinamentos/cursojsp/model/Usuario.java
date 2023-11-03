@@ -12,6 +12,8 @@ public class Usuario {
 	private String email;
 	private String login;
 	private String senha;
+	private String perfil;
+	private boolean admin;
 
 	public Usuario() {
 	}
@@ -23,13 +25,23 @@ public class Usuario {
 		this.senha = senha;
 	}
 	
-	public Usuario(Long id, String nome, String email, String login, String senha) {
-		super();
+	public Usuario(Long id, String nome, String email, String login, String senha, String perfil) {
 		this.id = id;
 		this.nome = nome;
 		this.email = email;
 		this.login = login;
 		this.senha = senha;
+		this.perfil = perfil;
+	}
+
+	public Usuario(Long id, String nome, String email, String login, String senha, String perfil, boolean admin) {
+		this.id = id;
+		this.nome = nome;
+		this.email = email;
+		this.login = login;
+		this.senha = senha;
+		this.perfil = perfil;
+		this.admin = admin;
 	}
 
 	public Long getId() {
@@ -70,6 +82,22 @@ public class Usuario {
 
 	public void setSenha(String senha) {
 		this.senha = senha;
+	}
+	
+	public String getPerfil() {
+		return perfil;
+	}
+
+	public void setPerfil(String perfil) {
+		this.perfil = perfil;
+	}
+
+	public boolean isAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(boolean admin) {
+		this.admin = admin;
 	}
 	
 	public boolean isNovo() {

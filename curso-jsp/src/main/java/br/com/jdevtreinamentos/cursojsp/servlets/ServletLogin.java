@@ -14,10 +14,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ServletLogin extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private DAOUsuario daoLogin;
+	private DAOUsuario daoUsuario;
+
 
 	public ServletLogin() {
-		daoLogin = new DAOUsuario();
+		daoUsuario = new DAOUsuario();
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -42,10 +43,11 @@ public class ServletLogin extends HttpServlet {
 				modelLogin.setLogin(login);
 				modelLogin.setSenha(senha);
 
-				boolean loginIsValid = daoLogin.autenticar(modelLogin);
+				boolean loginIsValid = daoUsuario.autenticar(modelLogin);
 
 				if (loginIsValid) {
-					request.getSession().setAttribute("usuario", modelLogin.getLogin());
+					modelLogin = daoUsuario.getUsuarioPorLoginAuth(login).get();
+					request.getSession().setAttribute("usuario", modelLogin);
 
 					if (url == null || url.equals("null") || url.isBlank()) {
 						url = "/principal/inicio.jsp";
