@@ -62,6 +62,9 @@ public class DAOUsuario {
 				usuario.setSenha(result.getString("senha"));
 				usuario.setPerfil(result.getString("perfil"));
 				usuario.setAdmin(result.getBoolean("admin"));
+				usuario.setSexo(result.getString("sexo"));
+				usuario.setImagem(result.getString("imagem"));
+				usuario.setExtensaoImagem(result.getString("extensaoImagem"));
 
 				optional = Optional.ofNullable(usuario); // Retorna um valor pedido pelo método. Pode ser nulo ou não
 			}
@@ -71,7 +74,7 @@ public class DAOUsuario {
 
 		return optional;
 	}
-	
+
 	public Optional<Usuario> getUsuarioPorLoginAuth(String login) {
 		Optional<Usuario> optional = Optional.empty(); // Inicia um optinal vazio
 		String sql = "SELECT * FROM usuarios WHERE login = ?";
@@ -91,6 +94,9 @@ public class DAOUsuario {
 				usuario.setSenha(result.getString("senha"));
 				usuario.setPerfil(result.getString("perfil"));
 				usuario.setAdmin(result.getBoolean("admin"));
+				usuario.setSexo(result.getString("sexo"));
+				usuario.setImagem(result.getString("imagem"));
+				usuario.setImagem(result.getString("extensaoImagem"));
 
 				optional = Optional.ofNullable(usuario); // Retorna um valor pedido pelo método. Pode ser nulo ou não
 			}
@@ -100,7 +106,6 @@ public class DAOUsuario {
 
 		return optional;
 	}
-
 
 	public List<Usuario> pesquisarUsuarioPorNome(String parteNome) {
 		List<Usuario> usuarios = new ArrayList<>();
@@ -119,7 +124,7 @@ public class DAOUsuario {
 				usuario.setEmail(resultSet.getString("email"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
-				
+
 				usuarios.add(usuario);
 			}
 		} catch (SQLException e) {
@@ -146,7 +151,7 @@ public class DAOUsuario {
 				usuario.setEmail(resultSet.getString("email"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
-				
+
 				usuarios.add(usuario);
 			}
 		} catch (SQLException e) {
@@ -185,11 +190,10 @@ public class DAOUsuario {
 				if (!loginValido(usuario.getLogin())) {
 					throw new IllegalArgumentException("O login '" + usuario.getLogin() + "' já existe no banco!");
 				}
-
-				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, current_user_id) VALUES(?, ?, ?, ?, ?, ?)";
+				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, sexo, current_user_id) VALUES(?, ?, ?, ?, ?, ?, ?)";
 				stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-				setDadosStatement(stmt, usuario, currentUserId);
 
+				setDadosStatement(stmt, usuario, currentUserId);
 				stmt.execute();
 				connection.commit();
 
@@ -198,19 +202,29 @@ public class DAOUsuario {
 				Long id = null;
 				if (result.next()) {
 					id = result.getLong("id");
+					usuario.setId(id);
 				}
 
+				if (usuario.getImagem() != null && !usuario.getImagem().trim().isEmpty()) {
+					updateImagemUsuario(usuario);
+				}
+				
 				return getUsuarioPorId(id, currentUserId).get();
 
 			} else {
 				if (getUsuarioPorId(usuario.getId(), currentUserId).isPresent()) {
-					sql = "UPDATE usuarios SET nome = ?, email = ?, login = ?, senha = ?, perfil= ? WHERE id = ?";
+
+					sql = "UPDATE usuarios SET nome = ?, email = ?, login = ?, senha = ?, perfil= ?, sexo = ? WHERE id = ?";
 					stmt = connection.prepareStatement(sql);
 					setDadosStatement(stmt, usuario, currentUserId);
 
 					stmt.execute();
 					connection.commit();
 
+					if (usuario.getImagem() != null && !usuario.getImagem().trim().isEmpty()) {
+						updateImagemUsuario(usuario);
+					}
+					
 					return getUsuarioPorId(usuario.getId(), currentUserId).get();
 				} else {
 					throw new IllegalArgumentException(
@@ -222,6 +236,23 @@ public class DAOUsuario {
 			e.printStackTrace();
 			throw new RuntimeException("Não foi possivel inserir o usuário" + e);
 		}
+	}
+
+	public void updateImagemUsuario(Usuario usuario) {
+		try {
+			String sql = "UPDATE usuarios SET imagem = ?, extensaoImagem = ? WHERE id= ?";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			
+			stmt.setString(1, usuario.getImagem());
+			stmt.setString(2, usuario.getExtensaoImagem());
+			stmt.setLong(3, usuario.getId());
+
+			stmt.execute();
+			connection.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	public boolean remover(Long id, Long currentUserId) {
@@ -252,11 +283,12 @@ public class DAOUsuario {
 			stmt.setString(3, usuario.getLogin());
 			stmt.setString(4, usuario.getSenha());
 			stmt.setString(5, usuario.getPerfil());
-			
-			if(usuario.isNovo()) {
-				stmt.setLong(6, currentUserId);
-			}else {
-				stmt.setLong(6, usuario.getId());
+			stmt.setString(6, usuario.getSexo());
+
+			if (usuario.isNovo()) {
+				stmt.setLong(7, currentUserId);
+			} else {
+				stmt.setLong(7, usuario.getId());
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

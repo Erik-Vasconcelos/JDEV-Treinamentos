@@ -13,6 +13,9 @@ public class Usuario {
 	private String login;
 	private String senha;
 	private String perfil;
+	private String sexo;
+	private String imagem;
+	private String extensaoImagem;
 	private boolean admin;
 
 	public Usuario() {
@@ -25,13 +28,14 @@ public class Usuario {
 		this.senha = senha;
 	}
 	
-	public Usuario(Long id, String nome, String email, String login, String senha, String perfil) {
+	public Usuario(Long id, String nome, String email, String login, String senha, String perfil, String sexo) {
 		this.id = id;
 		this.nome = nome;
 		this.email = email;
 		this.login = login;
 		this.senha = senha;
 		this.perfil = perfil;
+		this.sexo = sexo;
 	}
 
 	public Usuario(Long id, String nome, String email, String login, String senha, String perfil, boolean admin) {
@@ -90,6 +94,30 @@ public class Usuario {
 
 	public void setPerfil(String perfil) {
 		this.perfil = perfil;
+	}
+	
+	public String getSexo() {
+		return sexo;
+	}
+
+	public void setSexo(String sexo) {
+		this.sexo = sexo;
+	}
+
+	public String getImagem() {
+		return imagem;
+	}
+
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
+	}
+
+	public String getExtensaoImagem() {
+		return extensaoImagem;
+	}
+
+	public void setExtensaoImagem(String extensaoImagem) {
+		this.extensaoImagem = extensaoImagem;
 	}
 
 	public boolean isAdmin() {

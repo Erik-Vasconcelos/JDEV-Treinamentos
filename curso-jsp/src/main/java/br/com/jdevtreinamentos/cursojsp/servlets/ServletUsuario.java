@@ -4,19 +4,26 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
+import org.apache.tomcat.jakartaee.commons.io.IOUtils;
+import org.apache.tomcat.util.codec.binary.Base64;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.jdevtreinamentos.cursojsp.dao.DAOUsuario;
 import br.com.jdevtreinamentos.cursojsp.model.Usuario;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 
 /**
  * Servlet implementation class ServletUsuario
  */
+@MultipartConfig
 @WebServlet(urlPatterns = { "/ServletUsuario" })
 public class ServletUsuario extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -27,12 +34,11 @@ public class ServletUsuario extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
-		Long currentUserId = ((Usuario)request.getSession().getAttribute("usuario")).getId();
-		
+		Long currentUserId = ((Usuario) request.getSession().getAttribute("usuario")).getId();
+
 		List<Usuario> listUsuarios = daoUsuario.getUsuarios(currentUserId);
 		request.getSession().setAttribute("listUsuarios", listUsuarios);
-		
+
 		String acao = (String) request.getParameter("acao");
 		if (acao != null && acao.equals("delete")) {
 			String id = (String) request.getParameter("id");
@@ -47,32 +53,47 @@ public class ServletUsuario extends HttpServlet {
 			}
 		} else if (acao != null && acao.equals("pesquisar")) {
 			String valorPesquisa = (String) request.getParameter("valorPesquisa");
-			
+
 			List<Usuario> usuarios = daoUsuario.pesquisarUsuarioPorNome(valorPesquisa);
-			
+
 			ObjectMapper mapper = new ObjectMapper();
-			String json = mapper.writeValueAsString(usuarios); //Converte em json para retornar para a função AJAX
-			
+			String json = mapper.writeValueAsString(usuarios); // Converte em json para retornar para a função AJAX
+
 			response.getWriter().write(json);
-		}else if(acao != null && acao.equals("editar")) {
+		} else if (acao != null && acao.equals("editar")) {
 			String idString = request.getParameter("id");
 			Long id = Long.parseLong(idString);
+
+			Optional<Usuario> optional = daoUsuario.getUsuarioPorId(id, currentUserId);
+
+			if (optional.isPresent()) {
+				request.getSession().setAttribute("modelo", optional.get());
+				request.getSession().setAttribute("msg", "Usuário em edição");
+
+			} else {
+				request.getSession().setAttribute("msg", "Usuário não encontrado!");
+			}
+
+			response.sendRedirect("principal/usuario.jsp");
+		} else if (acao != null && acao.equals("downloadImagem")) {
+			Long id = Long.parseLong(request.getParameter("id"));
 			
 			Optional<Usuario> optional = daoUsuario.getUsuarioPorId(id, currentUserId);
 			
 			if(optional.isPresent()) {
-				request.getSession().setAttribute("modelo", optional.get());
-				request.getSession().setAttribute("msg", "Usuário em edição");
+				Usuario usuario = optional.get();
 				
-			}else {
-				request.getSession().setAttribute("msg", "Usuário não encontrado!");
+				response.setHeader("Content-Disposition", "attachment;filename=imagem." + usuario.getExtensaoImagem());
+				String imagemBase64 = usuario.getImagem().split("\\,")[1]; 
+				
+				response.getOutputStream().write(new Base64().decode(imagemBase64));
+				
 			}
 			
-			response.sendRedirect("principal/usuario.jsp");
-		}else {
+		} else {
 			response.sendRedirect("principal/usuario.jsp");
 		}
-		
+
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -86,19 +107,32 @@ public class ServletUsuario extends HttpServlet {
 		String login = request.getParameter("login");
 		String senha = request.getParameter("senha");
 		String perfil = request.getParameter("perfil");
+		String sexo = request.getParameter("sexo");
 
-		Usuario usuario = new Usuario(id, nome, email, login, senha, perfil);
+		Usuario usuario = new Usuario(id, nome, email, login, senha, perfil, sexo);
+
+		if (JakartaServletFileUpload.isMultipartContent(request)) {
+			Part part = request.getPart("imagemFile");
+			if (part.getSize() > 0) {
+				byte[] imagemByte = IOUtils.toByteArray(part.getInputStream());
+				String imagemBase64 = new Base64().encodeAsString(imagemByte);
+
+				String extensao = part.getContentType().split("/")[1];
+				imagemBase64 = "data:image/" + extensao + ";base64," + imagemBase64;
+
+				usuario.setImagem(imagemBase64);
+				usuario.setExtensaoImagem(extensao);
+			}
+		}
 
 		try {
-
 			if (usuario.isNovo()) {
 				request.getSession().setAttribute("msg", "Usuário inserido com sucesso!");
 			} else {
 				request.getSession().setAttribute("msg", "Usuário #" + usuario.getId() + " atualizado com sucesso!");
 			}
 
-			
-			Long currentUserId = ((Usuario)request.getSession().getAttribute("usuario")).getId();
+			Long currentUserId = ((Usuario) request.getSession().getAttribute("usuario")).getId();
 			usuario = daoUsuario.salvar(usuario, currentUserId);
 			usuario.setSenha("");
 
