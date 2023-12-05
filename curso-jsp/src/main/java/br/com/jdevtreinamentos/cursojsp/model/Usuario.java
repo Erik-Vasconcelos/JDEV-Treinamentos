@@ -16,18 +16,24 @@ public class Usuario {
 	private String sexo;
 	private String imagem;
 	private String extensaoImagem;
+	private String cep;
+	private String logradouro;
+	private String bairro;
+	private String cidade;
+	private String estado;
+	private int numero;
 	private boolean admin;
 
 	public Usuario() {
 	}
-	
+
 	public Usuario(String nome, String email, String login, String senha) {
 		this.nome = nome;
 		this.email = email;
 		this.login = login;
 		this.senha = senha;
 	}
-	
+
 	public Usuario(Long id, String nome, String email, String login, String senha, String perfil, String sexo) {
 		this.id = id;
 		this.nome = nome;
@@ -87,7 +93,7 @@ public class Usuario {
 	public void setSenha(String senha) {
 		this.senha = senha;
 	}
-	
+
 	public String getPerfil() {
 		return perfil;
 	}
@@ -95,7 +101,7 @@ public class Usuario {
 	public void setPerfil(String perfil) {
 		this.perfil = perfil;
 	}
-	
+
 	public String getSexo() {
 		return sexo;
 	}
@@ -120,6 +126,54 @@ public class Usuario {
 		this.extensaoImagem = extensaoImagem;
 	}
 
+	public String getCep() {
+		return cep;
+	}
+
+	public void setCep(String cep) {
+		this.cep = cep;
+	}
+
+	public String getLogradouro() {
+		return logradouro;
+	}
+
+	public void setLogradouro(String logradouro) {
+		this.logradouro = logradouro;
+	}
+
+	public String getBairro() {
+		return bairro;
+	}
+
+	public void setBairro(String bairro) {
+		this.bairro = bairro;
+	}
+
+	public String getCidade() {
+		return cidade;
+	}
+
+	public void setCidade(String cidade) {
+		this.cidade = cidade;
+	}
+
+	public String getEstado() {
+		return estado;
+	}
+
+	public void setEstado(String estado) {
+		this.estado = estado;
+	}
+
+	public int getNumero() {
+		return numero;
+	}
+
+	public void setNumero(int numero) {
+		this.numero = numero;
+	}
+
 	public boolean isAdmin() {
 		return admin;
 	}
@@ -127,7 +181,7 @@ public class Usuario {
 	public void setAdmin(boolean admin) {
 		this.admin = admin;
 	}
-	
+
 	public boolean isNovo() {
 		return this.id == null || this.id.equals(0L);
 	}

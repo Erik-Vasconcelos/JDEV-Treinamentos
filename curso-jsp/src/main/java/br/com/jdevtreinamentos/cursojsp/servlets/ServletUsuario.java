@@ -36,8 +36,10 @@ public class ServletUsuario extends HttpServlet {
 			throws ServletException, IOException {
 		Long currentUserId = ((Usuario) request.getSession().getAttribute("usuario")).getId();
 
-		List<Usuario> listUsuarios = daoUsuario.getUsuarios(currentUserId);
+		List<Usuario> listUsuarios = daoUsuario.getUsuarios(currentUserId, 0);
 		request.getSession().setAttribute("listUsuarios", listUsuarios);
+		request.getSession().setAttribute("totalPaginas", daoUsuario.getTotalPaginas(currentUserId));
+		
 
 		String acao = (String) request.getParameter("acao");
 		if (acao != null && acao.equals("delete")) {
@@ -54,7 +56,7 @@ public class ServletUsuario extends HttpServlet {
 		} else if (acao != null && acao.equals("pesquisar")) {
 			String valorPesquisa = (String) request.getParameter("valorPesquisa");
 
-			List<Usuario> usuarios = daoUsuario.pesquisarUsuarioPorNome(valorPesquisa);
+			List<Usuario> usuarios = daoUsuario.pesquisarUsuarioPorNome(valorPesquisa, 0);
 
 			ObjectMapper mapper = new ObjectMapper();
 			String json = mapper.writeValueAsString(usuarios); // Converte em json para retornar para a função AJAX
@@ -74,6 +76,14 @@ public class ServletUsuario extends HttpServlet {
 				request.getSession().setAttribute("msg", "Usuário não encontrado!");
 			}
 
+			response.sendRedirect("principal/usuario.jsp");
+		} else if (acao != null && acao.equals("pagination")) {
+			int offset = Integer.parseInt(request.getParameter("offset"));
+			
+			listUsuarios = daoUsuario.getUsuarios(currentUserId, offset);
+			request.getSession().setAttribute("listUsuarios", listUsuarios);
+			request.getSession().setAttribute("totalPaginas", daoUsuario.getTotalPaginas(currentUserId));
+			
 			response.sendRedirect("principal/usuario.jsp");
 		} else if (acao != null && acao.equals("downloadImagem")) {
 			Long id = Long.parseLong(request.getParameter("id"));
@@ -108,9 +118,22 @@ public class ServletUsuario extends HttpServlet {
 		String senha = request.getParameter("senha");
 		String perfil = request.getParameter("perfil");
 		String sexo = request.getParameter("sexo");
+		
+		String cep = request.getParameter("cep");
+		String logradouro = request.getParameter("logradouro");
+		String bairro = request.getParameter("bairro");
+		String cidade = request.getParameter("cidade");
+		String estado = request.getParameter("estado");
+		int numero = Integer.parseInt(request.getParameter("numero"));
 
 		Usuario usuario = new Usuario(id, nome, email, login, senha, perfil, sexo);
-
+		usuario.setCep(cep);
+		usuario.setLogradouro(logradouro);
+		usuario.setBairro(bairro);
+		usuario.setCidade(cidade);
+		usuario.setEstado(estado);
+		usuario.setNumero(numero);
+		
 		if (JakartaServletFileUpload.isMultipartContent(request)) {
 			Part part = request.getPart("imagemFile");
 			if (part.getSize() > 0) {

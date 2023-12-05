@@ -17,6 +17,7 @@ import br.com.jdevtreinamentos.cursojsp.model.Usuario;
 public class DAOUsuario {
 
 	private Connection connection;
+	private final int REGISTROS_POR_PAGINA = 5;
 
 	public DAOUsuario() {
 		connection = FabricaConexao.getConnection();
@@ -66,6 +67,13 @@ public class DAOUsuario {
 				usuario.setImagem(result.getString("imagem"));
 				usuario.setExtensaoImagem(result.getString("extensaoImagem"));
 
+				usuario.setCep(result.getString("cep"));
+				usuario.setLogradouro(result.getString("logradouro"));
+				usuario.setBairro(result.getString("bairro"));
+				usuario.setCidade(result.getString("cidade"));
+				usuario.setEstado(result.getString("estado"));
+				usuario.setNumero(result.getInt("numero"));
+
 				optional = Optional.ofNullable(usuario); // Retorna um valor pedido pelo método. Pode ser nulo ou não
 			}
 		} catch (SQLException e) {
@@ -96,7 +104,7 @@ public class DAOUsuario {
 				usuario.setAdmin(result.getBoolean("admin"));
 				usuario.setSexo(result.getString("sexo"));
 				usuario.setImagem(result.getString("imagem"));
-				usuario.setImagem(result.getString("extensaoImagem"));
+				usuario.setExtensaoImagem(result.getString("extensaoImagem"));
 
 				optional = Optional.ofNullable(usuario); // Retorna um valor pedido pelo método. Pode ser nulo ou não
 			}
@@ -107,13 +115,41 @@ public class DAOUsuario {
 		return optional;
 	}
 
-	public List<Usuario> pesquisarUsuarioPorNome(String parteNome) {
+	public int getTotalPaginas(Long currentUserId) {
+		try {
+			String sql = "SELECT COUNT(id) AS quantidade FROM usuarios";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+
+			ResultSet result = stmt.executeQuery();
+			if (result.next()) {
+
+				int totalRegistros = result.getInt("quantidade");
+
+				int totalPaginas = totalRegistros / REGISTROS_POR_PAGINA;
+
+				if (totalRegistros % REGISTROS_POR_PAGINA > 0) {
+					totalPaginas++;
+				}
+
+				return totalPaginas;
+			}
+
+			return 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
+	public List<Usuario> pesquisarUsuarioPorNome(String parteNome, int offset) {
 		List<Usuario> usuarios = new ArrayList<>();
 
 		try {
-			String sql = "SELECT * FROM usuarios WHERE nome ILIKE ? AND admin IS FALSE";
+			String sql = "SELECT * FROM usuarios WHERE nome ILIKE ? AND admin IS FALSE OFFSET ? LIMIT ?";
 			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setString(1, "%" + parteNome + "%");
+			stmt.setInt(2, offset);
+			stmt.setInt(3, REGISTROS_POR_PAGINA);
 
 			ResultSet resultSet = stmt.executeQuery();
 
@@ -134,13 +170,15 @@ public class DAOUsuario {
 		return usuarios;
 	}
 
-	public List<Usuario> getUsuarios(Long currentUserId) {
+	public List<Usuario> getUsuarios(Long currentUserId, int offset) {
 		List<Usuario> usuarios = new ArrayList<>();
 
 		try {
-			String sql = "SELECT * FROM usuarios WHERE admin IS FALSE AND current_user_id = ?";
+			String sql = "SELECT * FROM usuarios WHERE admin IS FALSE AND current_user_id = ? OFFSET ? LIMIT ? ";
 			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setLong(1, currentUserId);
+			stmt.setInt(2, offset);
+			stmt.setInt(3, REGISTROS_POR_PAGINA);
 
 			ResultSet resultSet = stmt.executeQuery();
 
@@ -190,7 +228,7 @@ public class DAOUsuario {
 				if (!loginValido(usuario.getLogin())) {
 					throw new IllegalArgumentException("O login '" + usuario.getLogin() + "' já existe no banco!");
 				}
-				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, sexo, current_user_id) VALUES(?, ?, ?, ?, ?, ?, ?)";
+				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, sexo, cep, logradouro, bairro, cidade, estado, numero, current_user_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 				setDadosStatement(stmt, usuario, currentUserId);
@@ -208,13 +246,13 @@ public class DAOUsuario {
 				if (usuario.getImagem() != null && !usuario.getImagem().trim().isEmpty()) {
 					updateImagemUsuario(usuario);
 				}
-				
+
 				return getUsuarioPorId(id, currentUserId).get();
 
 			} else {
 				if (getUsuarioPorId(usuario.getId(), currentUserId).isPresent()) {
 
-					sql = "UPDATE usuarios SET nome = ?, email = ?, login = ?, senha = ?, perfil= ?, sexo = ? WHERE id = ?";
+					sql = "UPDATE usuarios SET nome = ?, email = ?, login = ?, senha = ?, perfil= ?, sexo = ?, cep = ?, logradouro = ?, bairro = ?, cidade = ?, estado = ?, numero = ? WHERE id = ?";
 					stmt = connection.prepareStatement(sql);
 					setDadosStatement(stmt, usuario, currentUserId);
 
@@ -224,7 +262,7 @@ public class DAOUsuario {
 					if (usuario.getImagem() != null && !usuario.getImagem().trim().isEmpty()) {
 						updateImagemUsuario(usuario);
 					}
-					
+
 					return getUsuarioPorId(usuario.getId(), currentUserId).get();
 				} else {
 					throw new IllegalArgumentException(
@@ -242,7 +280,7 @@ public class DAOUsuario {
 		try {
 			String sql = "UPDATE usuarios SET imagem = ?, extensaoImagem = ? WHERE id= ?";
 			PreparedStatement stmt = connection.prepareStatement(sql);
-			
+
 			stmt.setString(1, usuario.getImagem());
 			stmt.setString(2, usuario.getExtensaoImagem());
 			stmt.setLong(3, usuario.getId());
@@ -284,11 +322,17 @@ public class DAOUsuario {
 			stmt.setString(4, usuario.getSenha());
 			stmt.setString(5, usuario.getPerfil());
 			stmt.setString(6, usuario.getSexo());
+			stmt.setString(7, usuario.getCep());
+			stmt.setString(8, usuario.getLogradouro());
+			stmt.setString(9, usuario.getBairro());
+			stmt.setString(10, usuario.getCidade());
+			stmt.setString(11, usuario.getEstado());
+			stmt.setInt(12, usuario.getNumero());
 
 			if (usuario.isNovo()) {
-				stmt.setLong(7, currentUserId);
+				stmt.setLong(13, currentUserId);
 			} else {
-				stmt.setLong(7, usuario.getId());
+				stmt.setLong(13, usuario.getId());
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
