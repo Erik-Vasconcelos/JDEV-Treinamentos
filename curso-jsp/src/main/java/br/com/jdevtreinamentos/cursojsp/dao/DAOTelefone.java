@@ -21,6 +21,7 @@ public class DAOTelefone {
 	
 	public void salvar(Telefone telefone) {
 		try {
+			
 			if(telefone.isNovo()) {
 				String sql  = "INSERT INTO telefones(numero, usuario_id) VALUES (?, ?)";
 				PreparedStatement stmt = connection.prepareStatement(sql);
@@ -87,13 +88,15 @@ public class DAOTelefone {
 	}
 	
 	
-	private boolean telefoneUsuarioExists(Telefone telefone) {
+	public boolean telefoneUsuarioExists(Telefone telefone) {
 		try {
-			String sql = "SELECT COUNT(id) > 0 AS quantidade FROM telefones WHERE usuario_id = ?";
+			String sql = "SELECT COUNT(*) > 0 AS quantidade FROM telefones WHERE numero = ? and usuario_id = ?";
 			PreparedStatement stmt = connection.prepareStatement(sql);
-			stmt.setLong(1, telefone.getUsuario().getId());
+			stmt.setString(1, telefone.getNumero());
+			stmt.setLong(2, telefone.getUsuario().getId());
 			
 			ResultSet result = stmt.executeQuery();
+			result.next();
 			
 			boolean telefoneExiste = result.getBoolean("quantidade");
 

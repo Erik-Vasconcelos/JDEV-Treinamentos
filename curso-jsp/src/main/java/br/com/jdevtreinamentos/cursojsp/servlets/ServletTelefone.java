@@ -18,9 +18,11 @@ public class ServletTelefone extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	private DAOTelefone daoTelefone;
+	private DAOUsuario daoUsuario;
 
 	public ServletTelefone() {
 		daoTelefone = new DAOTelefone();
+		daoUsuario = new DAOUsuario();
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -53,20 +55,21 @@ public class ServletTelefone extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		Long currentUserId = ((Usuario) request.getSession().getAttribute("usuario")).getId();
+		
 		Long id = Long.parseLong(request.getParameter("id"));
 		String numero = request.getParameter("numero");
-
-		Usuario usuario = new Usuario();
-		usuario.setId(id);
-
+		
+		Usuario usuario = daoUsuario.getUsuarioPorId(id, currentUserId).get();
 		Telefone telefone = new Telefone(numero, usuario);
+		
+		if(!daoTelefone.telefoneUsuarioExists(telefone)) {
+			daoTelefone.salvar(telefone);
+			request.getSession().setAttribute("msg", "Telefone inserido com sucesso!");
 
-		daoTelefone.salvar(telefone);
-		request.getSession().setAttribute("msg", "Telefone inserido com sucesso!");
-
-//		List<Telefone> telefones = daoTelefone.getTelefones(usuario);
-//		request.getSession().setAttribute("telefones", telefones);
+		}else {
+			request.getSession().setAttribute("msg", "O telefone já existe!");
+		}
 
 		response.sendRedirect(request.getContextPath() + "/ServletTelefone?id-usuario=" + id);
 	}

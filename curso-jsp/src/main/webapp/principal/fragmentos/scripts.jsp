@@ -35,3 +35,5 @@
 <script type="text/javascript"
 	src="assets/pages/dashboard/custom-dashboard.js"></script>
 <script type="text/javascript" src="assets/js/script.js "></script>
+<script type="text/javascript" src="assets/js/jquery.maskMoney.min.js "></script>
+

@@ -1,6 +1,9 @@
 package br.com.jdevtreinamentos.cursojsp.servlets;
 
 import java.io.IOException;
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,61 +123,76 @@ public class ServletUsuario extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String idString = request.getParameter("id");
-		Long id = idString != null && !idString.isEmpty() && !idString.equals("null") ? Long.parseLong(idString) : null;
-
-		String nome = request.getParameter("nome");
-		String email = request.getParameter("email");
-		String login = request.getParameter("login");
-		String senha = request.getParameter("senha");
-		String perfil = request.getParameter("perfil");
-		String sexo = request.getParameter("sexo");
-		
-		String cep = request.getParameter("cep");
-		String logradouro = request.getParameter("logradouro");
-		String bairro = request.getParameter("bairro");
-		String cidade = request.getParameter("cidade");
-		String estado = request.getParameter("estado");
-		int numero = Integer.parseInt(request.getParameter("numero"));
-
-		Usuario usuario = new Usuario(id, nome, email, login, senha, perfil, sexo);
-		usuario.setCep(cep);
-		usuario.setLogradouro(logradouro);
-		usuario.setBairro(bairro);
-		usuario.setCidade(cidade);
-		usuario.setEstado(estado);
-		usuario.setNumero(numero);
-		
-		if (JakartaServletFileUpload.isMultipartContent(request)) {
-			Part part = request.getPart("imagemFile");
-			if (part.getSize() > 0) {
-				byte[] imagemByte = IOUtils.toByteArray(part.getInputStream());
-				String imagemBase64 = new Base64().encodeAsString(imagemByte);
-
-				String extensao = part.getContentType().split("/")[1];
-				imagemBase64 = "data:image/" + extensao + ";base64," + imagemBase64;
-
-				usuario.setImagem(imagemBase64);
-				usuario.setExtensaoImagem(extensao);
-			}
-		}
-
 		try {
-			if (usuario.isNovo()) {
-				request.getSession().setAttribute("msg", "Usuário inserido com sucesso!");
-			} else {
-				request.getSession().setAttribute("msg", "Usuário #" + usuario.getId() + " atualizado com sucesso!");
+			String idString = request.getParameter("id");
+			Long id = idString != null && !idString.isEmpty() && !idString.equals("null") ? Long.parseLong(idString) : null;
+
+			String nome = request.getParameter("nome");
+			String email = request.getParameter("email");
+			String login = request.getParameter("login");
+			String senha = request.getParameter("senha");
+			String perfil = request.getParameter("perfil");
+			String sexo = request.getParameter("sexo");
+			
+			String cep = request.getParameter("cep");
+			String logradouro = request.getParameter("logradouro");
+			String bairro = request.getParameter("bairro");
+			String cidade = request.getParameter("cidade");
+			String estado = request.getParameter("estado");
+			int numero = Integer.parseInt(request.getParameter("numero"));
+			
+			Date dataNascimento = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(request.getParameter("dataNascimento"))));
+			String salarioString = request.getParameter("salario");
+			
+			String valor = salarioString.replaceAll("\\.", "").replaceAll("\\,", ".");
+			
+			Double salario = Double.parseDouble(salarioString.replaceAll("\\.", "").replaceAll("\\,", ".") );
+
+			Usuario usuario = new Usuario(id, nome, email, login, senha, perfil, sexo);
+			usuario.setSalario(salario);
+			usuario.setCep(cep);
+			usuario.setLogradouro(logradouro);
+			usuario.setBairro(bairro);
+			usuario.setCidade(cidade);
+			usuario.setEstado(estado);
+			usuario.setNumero(numero);
+			usuario.setDataNascimento(dataNascimento);
+			
+			if (JakartaServletFileUpload.isMultipartContent(request)) {
+				Part part = request.getPart("imagemFile");
+				if (part.getSize() > 0) {
+					byte[] imagemByte = IOUtils.toByteArray(part.getInputStream());
+					String imagemBase64 = new Base64().encodeAsString(imagemByte);
+
+					String extensao = part.getContentType().split("/")[1];
+					imagemBase64 = "data:image/" + extensao + ";base64," + imagemBase64;
+
+					usuario.setImagem(imagemBase64);
+					usuario.setExtensaoImagem(extensao);
+				}
 			}
 
-			Long currentUserId = ((Usuario) request.getSession().getAttribute("usuario")).getId();
-			usuario = daoUsuario.salvar(usuario, currentUserId);
-			usuario.setSenha("");
+			try {
+				if (usuario.isNovo()) {
+					request.getSession().setAttribute("msg", "Usuário inserido com sucesso!");
+				} else {
+					request.getSession().setAttribute("msg", "Usuário #" + usuario.getId() + " atualizado com sucesso!");
+				}
 
-		} catch (Exception e) {
-			request.getSession().setAttribute("msg", "ERRO: " + e.getMessage());
+				Long currentUserId = ((Usuario) request.getSession().getAttribute("usuario")).getId();
+				usuario = daoUsuario.salvar(usuario, currentUserId);
+				usuario.setSenha("");
+
+			} catch (Exception e) {
+				request.getSession().setAttribute("msg", "ERRO: " + e.getMessage());
+			}
+
+			request.getSession().setAttribute("modelo", usuario);
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
-
-		request.getSession().setAttribute("modelo", usuario);
 
 		doGet(request, response);
 	}

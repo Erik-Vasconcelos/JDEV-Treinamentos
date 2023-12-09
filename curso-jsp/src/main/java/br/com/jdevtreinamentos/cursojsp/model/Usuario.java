@@ -1,5 +1,7 @@
 package br.com.jdevtreinamentos.cursojsp.model;
 
+import java.sql.Date;
+
 /**
  * @author Erik Vasconcelos
  * @since 13/10/2023
@@ -10,6 +12,8 @@ public class Usuario {
 	private Long id;
 	private String nome;
 	private String email;
+	private Date dataNascimento;
+	private Double salario;
 	private String login;
 	private String senha;
 	private String perfil;
@@ -180,6 +184,22 @@ public class Usuario {
 
 	public void setAdmin(boolean admin) {
 		this.admin = admin;
+	}
+
+	public Date getDataNascimento() {
+		return dataNascimento;
+	}
+
+	public void setDataNascimento(Date dataNascimento) {
+		this.dataNascimento = dataNascimento;
+	}
+	
+	public Double getSalario() {
+		return salario;
+	}
+
+	public void setSalario(Double salario) {
+		this.salario = salario;
 	}
 
 	public boolean isNovo() {

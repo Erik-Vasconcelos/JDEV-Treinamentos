@@ -59,6 +59,8 @@ public class DAOUsuario {
 				usuario.setId(result.getLong("id"));
 				usuario.setNome(result.getString("nome"));
 				usuario.setEmail(result.getString("email"));
+				usuario.setDataNascimento(result.getDate("data_nascimento"));
+				usuario.setSalario(result.getDouble("salario"));
 				usuario.setLogin(result.getString("login"));
 				usuario.setSenha(result.getString("senha"));
 				usuario.setPerfil(result.getString("perfil"));
@@ -78,7 +80,7 @@ public class DAOUsuario {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}
+		} 
 
 		return optional;
 	}
@@ -99,6 +101,8 @@ public class DAOUsuario {
 				usuario.setNome(result.getString("nome"));
 				usuario.setEmail(result.getString("email"));
 				usuario.setLogin(result.getString("login"));
+				usuario.setDataNascimento(result.getDate("data_nascimento"));
+				usuario.setSalario(result.getDouble("salario"));
 				usuario.setSenha(result.getString("senha"));
 				usuario.setPerfil(result.getString("perfil"));
 				usuario.setAdmin(result.getBoolean("admin"));
@@ -207,6 +211,8 @@ public class DAOUsuario {
 				usuario.setEmail(resultSet.getString("email"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
+				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
+				usuario.setSalario(resultSet.getDouble("salario"));
 
 				usuarios.add(usuario);
 			}
@@ -236,6 +242,8 @@ public class DAOUsuario {
 				usuario.setEmail(resultSet.getString("email"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
+				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
+				usuario.setSalario(resultSet.getDouble("salario"));
 
 				usuarios.add(usuario);
 			}
@@ -275,7 +283,7 @@ public class DAOUsuario {
 				if (!loginValido(usuario.getLogin())) {
 					throw new IllegalArgumentException("O login '" + usuario.getLogin() + "' já existe no banco!");
 				}
-				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, sexo, cep, logradouro, bairro, cidade, estado, numero, current_user_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, sexo, cep, logradouro, bairro, cidade, estado, numero, data_nascimeneto, salario, current_user_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 				setDadosStatement(stmt, usuario, currentUserId);
@@ -299,7 +307,7 @@ public class DAOUsuario {
 			} else {
 				if (getUsuarioPorId(usuario.getId(), currentUserId).isPresent()) {
 
-					sql = "UPDATE usuarios SET nome = ?, email = ?, login = ?, senha = ?, perfil= ?, sexo = ?, cep = ?, logradouro = ?, bairro = ?, cidade = ?, estado = ?, numero = ? WHERE id = ?";
+					sql = "UPDATE usuarios SET nome = ?, email = ?, login = ?, senha = ?, perfil= ?, sexo = ?, cep = ?, logradouro = ?, bairro = ?, cidade = ?, estado = ?, numero = ?, data_nascimento = ?, salario = ? WHERE id = ?";
 					stmt = connection.prepareStatement(sql);
 					setDadosStatement(stmt, usuario, currentUserId);
 
@@ -375,11 +383,13 @@ public class DAOUsuario {
 			stmt.setString(10, usuario.getCidade());
 			stmt.setString(11, usuario.getEstado());
 			stmt.setInt(12, usuario.getNumero());
+			stmt.setDate(13, usuario.getDataNascimento());
+			stmt.setDouble(14, usuario.getSalario());
 
 			if (usuario.isNovo()) {
-				stmt.setLong(13, currentUserId);
+				stmt.setLong(15, currentUserId);
 			} else {
-				stmt.setLong(13, usuario.getId());
+				stmt.setLong(15, usuario.getId());
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
