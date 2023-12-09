@@ -179,7 +179,7 @@ pageEncoding="utf-8"%>
 																</div>
 
 																<div class="form-group form-default form-static-label">
-																	<input type="text" name="numero" class="form-control"
+																	<input type="text" id="numero" name="numero" class="form-control"
 																		required="required"
 																		value="${sessionScope.modelo.numero}"> <span
 																		class="form-bar"></span> <label class="float-label">Número</label>
@@ -211,6 +211,16 @@ pageEncoding="utf-8"%>
 																			style="vertical-align: inherit;"> Salvar</font>
 																	</font>
 																</button>
+																
+																
+																<c:if test="${sessionScope.modelo.id != null}">
+																	<a href="../ServletTelefone?id-usuario=${sessionScope.modelo.id}"
+																		class="btn btn-inverse btn-round waves-effect waves-light">
+																		<font style="vertical-align: inherit;"> <font
+																				style="vertical-align: inherit;">Telefones</font>
+																		</font>
+																	</a>
+																</c:if>
 																<button
 																	class="btn btn-danger btn-round waves-effect waves-light"
 																	type="button" onclick="excluir()">
@@ -316,6 +326,13 @@ pageEncoding="utf-8"%>
 								<tbody>
 								</tbody>
 							</table>
+							
+							<nav aria-label="Navegação de página exemplo">
+							  <ul class="pagination justify-content-center" id="pagination">
+							    
+							  </ul>
+							</nav>
+							
 						</div>
 					</div>
 					<div class="modal-footer">
@@ -326,11 +343,15 @@ pageEncoding="utf-8"%>
 		</div>
 
 		<script type="text/javascript">
+
+			$('#cep, #numero').keypress(function(event){
+				return /\d/.test(String.fromCharCode(event.keyCode));
+			});
+
 			function pesquisarCep(){
 				var cep = document.getElementById("cep").value;
 
 				$.getJSON("https://viacep.com.br/ws/"+ cep +"/json/?callback=?", function(dados) {
-
 
 					if (!("erro" in dados)) {
                         //Atualiza os campos com os valores da consulta.
@@ -351,10 +372,14 @@ pageEncoding="utf-8"%>
 						}
 					}
 
-					function pesquisar() {
+					function pesquisar(offset) {
 						var valor = document.getElementById("valorBusca").value;
 						var formulario = document.getElementById("formUsuario");
 
+						if(offset == null){
+							offset = 0;
+						}
+						
 						if (valor != null && valor.trim() != '') {
 							$
 								.ajax(
@@ -362,12 +387,15 @@ pageEncoding="utf-8"%>
 										method: "get",
 										url: formulario.action,
 										data: "valorPesquisa=" + valor
-											+ "&acao=pesquisar",
-										success: function (response) {
+											+ "&acao=pesquisar&offset=" + offset,
+										success: function (response, textStatus, xhr) {
 											var json = JSON.parse(response);
 
 											$("#tabelaUsuarios > tbody > tr")
 												.remove();
+
+											$("#pagination > li")
+											.remove();
 
 											for (i = 0; i < json.length; i++) {
 												$('#tabelaUsuarios > tbody')
@@ -381,9 +409,18 @@ pageEncoding="utf-8"%>
 														+ ')">Acessar</button></td></tr>')
 											}
 
+
+											var totalPaginas = xhr.getResponseHeader("totalPaginas");
+											
+											if(totalPaginas > 0){
+												for(var i = 0; i < totalPaginas; i++){
+													$("#pagination").append('<li class="page-item"><a class="page-link" onclick="pesquisar(' + (i*5) + ')">' + (i + 1) +'</a></li>')
+												}
+											}
+
 											document
 												.getElementById("totalRegistros").textContent = "Total de registros: "
-												+ json.length;
+												+  xhr.getResponseHeader("totalRegistros");;
 										}
 									}).fail(function (xhr, status, errorThrown) {
 										alert("Erro ao pesquisar: " + xhr.reponseText);

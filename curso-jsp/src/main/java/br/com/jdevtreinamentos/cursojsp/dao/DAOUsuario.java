@@ -140,6 +140,53 @@ public class DAOUsuario {
 			return 0;
 		}
 	}
+	
+	public int getTotalPaginasPesquisa(Long currentUserId, String parteNome) {
+		try {
+			String sql = "SELECT COUNT(id) AS quantidade FROM usuarios WHERE nome ILIKE ? AND admin IS FALSE";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			stmt.setString(1, "%" + parteNome + "%");
+
+			ResultSet result = stmt.executeQuery();
+			if (result.next()) {
+
+				int totalRegistros = result.getInt("quantidade");
+
+				int totalPaginas = totalRegistros / REGISTROS_POR_PAGINA;
+
+				if (totalRegistros % REGISTROS_POR_PAGINA > 0) {
+					totalPaginas++;
+				}
+
+				return totalPaginas;
+			}
+
+			return 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	
+	public int getTotalRegistrosPesquisa(Long currentUserId, String parteNome) {
+		try {
+			String sql = "SELECT COUNT(id) AS quantidade FROM usuarios WHERE nome ILIKE ? AND admin IS FALSE";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			stmt.setString(1, "%" + parteNome + "%");
+
+			ResultSet result = stmt.executeQuery();
+			if (result.next()) {
+				return result.getInt("quantidade");
+			}
+			
+			return 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
 
 	public List<Usuario> pesquisarUsuarioPorNome(String parteNome, int offset) {
 		List<Usuario> usuarios = new ArrayList<>();

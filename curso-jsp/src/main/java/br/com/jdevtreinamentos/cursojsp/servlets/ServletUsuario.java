@@ -56,12 +56,23 @@ public class ServletUsuario extends HttpServlet {
 		} else if (acao != null && acao.equals("pesquisar")) {
 			String valorPesquisa = (String) request.getParameter("valorPesquisa");
 
-			List<Usuario> usuarios = daoUsuario.pesquisarUsuarioPorNome(valorPesquisa, 0);
+			int offset = 0;
+			
+			if(request.getParameter("offset") != null) {
+				offset = Integer.parseInt(request.getParameter("offset")); 
+			}
+			
+			List<Usuario> usuarios = daoUsuario.pesquisarUsuarioPorNome(valorPesquisa, offset);
 
+			int totalPaginas = daoUsuario.getTotalPaginasPesquisa(currentUserId, valorPesquisa); 
+			
 			ObjectMapper mapper = new ObjectMapper();
 			String json = mapper.writeValueAsString(usuarios); // Converte em json para retornar para a função AJAX
 
 			response.getWriter().write(json);
+			response.setIntHeader("totalPaginas", totalPaginas);
+			response.setIntHeader("totalRegistros", daoUsuario.getTotalRegistrosPesquisa(currentUserId, valorPesquisa));
+			
 		} else if (acao != null && acao.equals("editar")) {
 			String idString = request.getParameter("id");
 			Long id = Long.parseLong(idString);
