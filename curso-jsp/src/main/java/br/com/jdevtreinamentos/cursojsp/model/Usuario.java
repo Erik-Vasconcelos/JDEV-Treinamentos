@@ -1,6 +1,8 @@
 package br.com.jdevtreinamentos.cursojsp.model;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Erik Vasconcelos
@@ -27,6 +29,8 @@ public class Usuario {
 	private String estado;
 	private int numero;
 	private boolean admin;
+	
+	private List<Telefone> telefones = new ArrayList<>();
 
 	public Usuario() {
 	}
@@ -200,6 +204,14 @@ public class Usuario {
 
 	public void setSalario(Double salario) {
 		this.salario = salario;
+	}
+	
+	public List<Telefone> getTelefones() {
+		return telefones;
+	}
+
+	public void setTelefones(List<Telefone> telefones) {
+		this.telefones = telefones;
 	}
 
 	public boolean isNovo() {

@@ -114,6 +114,28 @@ public class ServletUsuario extends HttpServlet {
 				
 			}
 			
+		} else if (acao != null && acao.equals("relatorio")) {
+			String dataInicial = request.getParameter("dataInicial");
+			String dataFinal = request.getParameter("dataFinal");
+			
+			if(dataInicial == null || dataInicial.equals("") || dataFinal == null || dataFinal.equals("")) {
+				request.getSession().setAttribute("relatorio", daoUsuario.getRelatorio(currentUserId));
+			}else {
+				try {
+					Date dateInicialDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataInicial)));
+					Date dateFinalDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataFinal)));
+					
+					request.getSession().setAttribute("relatorio", daoUsuario.getRelatorioFiltroData(dateInicialDt, dateFinalDt, currentUserId));
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			request.getSession().setAttribute("dataInicial", dataInicial);
+			request.getSession().setAttribute("dataFinal", dataFinal);
+			
+			response.sendRedirect("principal/relatorio-usuario.jsp");
+			
 		} else {
 			response.sendRedirect("principal/usuario.jsp");
 		}

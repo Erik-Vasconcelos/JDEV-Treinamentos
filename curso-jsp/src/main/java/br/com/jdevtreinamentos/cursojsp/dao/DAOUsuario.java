@@ -1,6 +1,7 @@
 package br.com.jdevtreinamentos.cursojsp.dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,9 +19,11 @@ public class DAOUsuario {
 
 	private Connection connection;
 	private final int REGISTROS_POR_PAGINA = 5;
+	private DAOTelefone daoTelefone;
 
 	public DAOUsuario() {
 		connection = FabricaConexao.getConnection();
+		daoTelefone = new DAOTelefone();
 	}
 
 	public boolean autenticar(Usuario login) {
@@ -117,6 +120,70 @@ public class DAOUsuario {
 		}
 
 		return optional;
+	}
+	
+	public List<Usuario> getRelatorio(Long currentUserId){
+		List<Usuario> usuarios = new ArrayList<>();
+
+		try {
+			String sql = "SELECT * FROM usuarios WHERE admin IS FALSE AND current_user_id = ?";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			stmt.setLong(1, currentUserId);
+
+			ResultSet resultSet = stmt.executeQuery();
+
+			while (resultSet.next()) {
+				Usuario usuario = new Usuario();
+				usuario.setId(resultSet.getLong("id"));
+				usuario.setNome(resultSet.getString("nome"));
+				usuario.setEmail(resultSet.getString("email"));
+				usuario.setLogin(resultSet.getString("login"));
+				usuario.setPerfil(resultSet.getString("perfil"));
+				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
+				usuario.setSalario(resultSet.getDouble("salario"));
+				usuario.setTelefones(daoTelefone.getTelefones(usuario));
+				
+				usuarios.add(usuario);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return usuarios;
+		
+	}
+	
+	public List<Usuario> getRelatorioFiltroData(Date dataInicial, Date dataFinal, Long currentUserId){
+		List<Usuario> usuarios = new ArrayList<>();
+
+		try {
+			String sql = "SELECT * FROM usuarios WHERE admin IS FALSE AND current_user_id = ? "
+					+ "and data_nascimento >= ? and  data_nascimento <= ?";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			stmt.setLong(1, currentUserId);
+			stmt.setDate(2, dataInicial);
+			stmt.setDate(3, dataFinal);
+
+			ResultSet resultSet = stmt.executeQuery();
+
+			while (resultSet.next()) {
+				Usuario usuario = new Usuario();
+				usuario.setId(resultSet.getLong("id"));
+				usuario.setNome(resultSet.getString("nome"));
+				usuario.setEmail(resultSet.getString("email"));
+				usuario.setLogin(resultSet.getString("login"));
+				usuario.setPerfil(resultSet.getString("perfil"));
+				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
+				usuario.setSalario(resultSet.getDouble("salario"));
+				usuario.setTelefones(daoTelefone.getTelefones(usuario));
+				
+				usuarios.add(usuario);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return usuarios;
 	}
 
 	public int getTotalPaginas(Long currentUserId) {
