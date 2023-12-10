@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.jdevtreinamentos.cursojsp.dao.DAOUsuario;
 import br.com.jdevtreinamentos.cursojsp.model.Usuario;
+import br.com.jdevtreinamentos.cursojsp.util.JasperUtil;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -136,7 +138,31 @@ public class ServletUsuario extends HttpServlet {
 			
 			response.sendRedirect("principal/relatorio-usuario.jsp");
 			
-		} else {
+		} else if (acao != null && acao.equals("downloadRelatorio")) {
+			String dataInicial = request.getParameter("dataInicial");
+			String dataFinal = request.getParameter("dataFinal");
+			
+			
+			byte[] relatorio = null;
+			
+			if(dataInicial == null || dataInicial.equals("") || dataFinal == null || dataFinal.equals("")) {
+				relatorio = new JasperUtil().gerarRelatorioPdf(daoUsuario.getRelatorio(currentUserId), "relatorio-usuario", request.getServletContext());
+			}else {
+				try {
+					Date dateInicialDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataInicial)));
+					Date dateFinalDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataFinal)));
+					
+					relatorio = new JasperUtil().gerarRelatorioPdf(daoUsuario.getRelatorioFiltroData(dateInicialDt, dateFinalDt, currentUserId), "relatorio-usuario", request.getServletContext());
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			response.setHeader("Content-Disposition", "attachment;filename=relatorio-usuario.pdf");
+			response.getOutputStream().write(relatorio);
+		}
+		
+		else {
 			response.sendRedirect("principal/usuario.jsp");
 		}
 
