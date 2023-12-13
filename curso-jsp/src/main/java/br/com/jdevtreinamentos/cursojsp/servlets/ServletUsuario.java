@@ -1,10 +1,13 @@
 package br.com.jdevtreinamentos.cursojsp.servlets;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
@@ -16,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.com.jdevtreinamentos.cursojsp.dao.DAOUsuario;
 import br.com.jdevtreinamentos.cursojsp.model.Usuario;
 import br.com.jdevtreinamentos.cursojsp.util.JasperUtil;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -138,27 +140,54 @@ public class ServletUsuario extends HttpServlet {
 			
 			response.sendRedirect("principal/relatorio-usuario.jsp");
 			
-		} else if (acao != null && acao.equals("downloadRelatorio")) {
+		} else if (acao != null && acao.equals("downloadRelatorio") || acao.equals("downloadRelatorioXsl")) {
 			String dataInicial = request.getParameter("dataInicial");
 			String dataFinal = request.getParameter("dataFinal");
 			
+
+			Map<String, Object> params = new HashMap<>();
+			String caminho = request.getServletContext().getRealPath( "src" + File.separator + "resources" + File.separator + "relatorios"); 
+			caminho = caminho.replace("\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp1", "").replace("\\wtpwebapps", "");
+			
+			params.put("CAMINHO_SUB_REPORT", caminho + "\\");
 			
 			byte[] relatorio = null;
+			String extensao = "";
 			
 			if(dataInicial == null || dataInicial.equals("") || dataFinal == null || dataFinal.equals("")) {
-				relatorio = new JasperUtil().gerarRelatorioPdf(daoUsuario.getRelatorio(currentUserId), "relatorio-usuario", request.getServletContext());
+				if(acao.equals("downloadRelatorio")) {
+					relatorio = new JasperUtil().gerarRelatorioPdf(daoUsuario.getRelatorio(currentUserId), "relatorio-usuario", params, request.getServletContext());
+
+					extensao = "pdf";
+				}else {
+					relatorio = new JasperUtil().gerarRelatorioExcel(daoUsuario.getRelatorio(currentUserId), "relatorio-usuario", params, request.getServletContext());
+
+					extensao = "xls";
+				}
+				
+				
 			}else {
 				try {
 					Date dateInicialDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataInicial)));
 					Date dateFinalDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataFinal)));
 					
-					relatorio = new JasperUtil().gerarRelatorioPdf(daoUsuario.getRelatorioFiltroData(dateInicialDt, dateFinalDt, currentUserId), "relatorio-usuario", request.getServletContext());
+					
+					if(acao.equals("downloadRelatorio")) {
+						relatorio = new JasperUtil().gerarRelatorioPdf(daoUsuario.getRelatorioFiltroData(dateInicialDt, dateFinalDt, currentUserId), "relatorio-usuario", params, request.getServletContext());
+
+						extensao = "pdf";
+					}else {
+						relatorio = new JasperUtil().gerarRelatorioExcel(daoUsuario.getRelatorioFiltroData(dateInicialDt, dateFinalDt, currentUserId), "relatorio-usuario", params, request.getServletContext());
+
+						extensao = "xls";
+					}
+					
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
 			}
 			
-			response.setHeader("Content-Disposition", "attachment;filename=relatorio-usuario.pdf");
+			response.setHeader("Content-Disposition", "attachment;filename=relatorio-usuario." + extensao);
 			response.getOutputStream().write(relatorio);
 		}
 		
