@@ -96,7 +96,7 @@ pageEncoding="utf-8"%>
 																	<label class>Sexo</label>
 																	<div class="form-check">
 																		<input class="form-check-input" type="radio"
-																			name="sexo" value="MASCULINO" id="radioMasculino"
+																			name="sexo" value="MASCULINO" id="radioMasculino" checked="checked"
 																			<%Usuario usuario=(Usuario)
 																			request.getSession().getAttribute("modelo");
 																			if (usuario !=null && usuario.getSexo().equals("MASCULINO"))
@@ -133,10 +133,10 @@ pageEncoding="utf-8"%>
 																</div>
 																
 																<div class="form-group form-default form-static-label">
-																	<select class="form-control" name="perfil">
-																		<option hidden>--Selecione--</option>
+																	<select class="form-control" name="perfil" required="required"> 
+																		<!--  <option hidden>--Selecione--</option>--->->
 
-																		<option value="ADMIN"
+																		<option value="ADMIN" 
 																			<%if (usuario !=null && usuario.getPerfil().equals("ADMIN"))
 																			{
 																			out.print("selected=\"selected\"");
@@ -146,7 +146,7 @@ pageEncoding="utf-8"%>
 																			usuario.getPerfil().equals("SECRETARIA")) {
 																			out.print("selected=\"selected\"");
 																			}%>>Secretária</option>
-																		<option value="AUXILIAR"
+																		<option value="AUXILIAR" 
 																			<%if (usuario !=null &&
 																			usuario.getPerfil().equals("AUXILIAR")) {
 																			out.print("selected=\"selected\"");
@@ -281,13 +281,16 @@ pageEncoding="utf-8"%>
 													<ul class="pagination justify-content-center">
 
 														<%
-															int totalPaginas = (int) request.getSession().getAttribute("totalPaginas");
 														
-															for(int i = 0; i < totalPaginas; i++){
-																
-																String url = request.getContextPath() + "/ServletUsuario?acao=pagination&offset=" + (i*5);
-																out.println("<li class=\"page-item\"><a class=\"page-link\" href=\"" + url + "\"> " + (i + 1) + "</a></li>");
-															}
+															if(request.getSession().getAttribute("totalPaginas") != null){
+																int totalPaginas = (int) request.getSession().getAttribute("totalPaginas");
+															
+																for(int i = 0; i < totalPaginas; i++){
+																	
+																	String url = request.getContextPath() + "/ServletUsuario?acao=pagination&offset=" + (i*5);
+																	out.println("<li class=\"page-item\"><a class=\"page-link\" href=\"" + url + "\"> " + (i + 1) + "</a></li>");
+																}
+															} 
 														
 														%>
 
@@ -372,10 +375,12 @@ pageEncoding="utf-8"%>
 		$("#salario").focus();
 		
 		var dataNascimento = $("#dataNascimento").val();
+
+		if(dataNascimento != null && dataNascimento != ''){
+			var dateFormat = new Date(dataNascimento);
+			$("#dataNascimento").val(dateFormat.toLocaleDateString('pt-BR',{timeZone: 'UTC'}));
+		}
 		
-		var dateFormat = new Date(dataNascimento);
-		
-		$("#dataNascimento").val(dateFormat.toLocaleDateString('pt-BR',{timeZone: 'UTC'}));
 		
 		$("#nome").focus();
 				

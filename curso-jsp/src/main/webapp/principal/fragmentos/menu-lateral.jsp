@@ -75,6 +75,9 @@
 								class="pcoded-mcaret"></span>
 						</a></li>
 					</c:if>
+					
+					
+					
 				</ul></li>
 		</ul>
 		<div class="pcoded-navigation-label" data-i18n="nav.category.forms">Relatórios
@@ -84,6 +87,13 @@
 				class="waves-effect waves-dark"> <span class="pcoded-micon"><i
 						class="ti-layers"></i><b>FC</b></span> <span class="pcoded-mtext"
 					data-i18n="nav.form-components.main">Usuário</span> <span
+					class="pcoded-mcaret"></span>
+			</a></li>
+			
+			<li><a href="grafico-user.jsp"
+				class="waves-effect waves-dark"> <span class="pcoded-micon"><i
+						class="ti-layers"></i><b>FC</b></span> <span class="pcoded-mtext"
+					data-i18n="nav.form-components.main">Gráfico de média salarial</span> <span
 					class="pcoded-mcaret"></span>
 			</a></li>
 		</ul>

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import br.com.jdevtreinamentos.cursojsp.connection.FabricaConexao;
+import br.com.jdevtreinamentos.cursojsp.dto.DTOGrafico;
 import br.com.jdevtreinamentos.cursojsp.model.Usuario;
 
 //record UsuarioRecord(String nome) {};//Java record - disponivel a partir do Java 14
@@ -83,7 +84,7 @@ public class DAOUsuario {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} 
+		}
 
 		return optional;
 	}
@@ -121,8 +122,8 @@ public class DAOUsuario {
 
 		return optional;
 	}
-	
-	public List<Usuario> getRelatorio(Long currentUserId){
+
+	public List<Usuario> getRelatorio(Long currentUserId) {
 		List<Usuario> usuarios = new ArrayList<>();
 
 		try {
@@ -139,10 +140,11 @@ public class DAOUsuario {
 				usuario.setEmail(resultSet.getString("email"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
+				usuario.setSexo(resultSet.getString("sexo"));
 				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
 				usuario.setSalario(resultSet.getDouble("salario"));
 				usuario.setTelefones(daoTelefone.getTelefones(usuario));
-				
+
 				usuarios.add(usuario);
 			}
 		} catch (SQLException e) {
@@ -150,10 +152,10 @@ public class DAOUsuario {
 		}
 
 		return usuarios;
-		
+
 	}
-	
-	public List<Usuario> getRelatorioFiltroData(Date dataInicial, Date dataFinal, Long currentUserId){
+
+	public List<Usuario> getRelatorioFiltroData(Date dataInicial, Date dataFinal, Long currentUserId) {
 		List<Usuario> usuarios = new ArrayList<>();
 
 		try {
@@ -171,12 +173,13 @@ public class DAOUsuario {
 				usuario.setId(resultSet.getLong("id"));
 				usuario.setNome(resultSet.getString("nome"));
 				usuario.setEmail(resultSet.getString("email"));
+				usuario.setSexo(resultSet.getString("sexo"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
 				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
 				usuario.setSalario(resultSet.getDouble("salario"));
 				usuario.setTelefones(daoTelefone.getTelefones(usuario));
-				
+
 				usuarios.add(usuario);
 			}
 		} catch (SQLException e) {
@@ -185,6 +188,65 @@ public class DAOUsuario {
 
 		return usuarios;
 	}
+
+	public DTOGrafico getMediaSalarial(Long currentUserId) {
+		try {
+			String sql = "SELECT AVG(salario) AS media, perfil FROM usuarios WHERE current_user_id = ? GROUP BY perfil";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			stmt.setLong(1, currentUserId);
+
+			ResultSet result = stmt.executeQuery();
+
+			List<String> perfis = new ArrayList<>();
+			List<Double> salarios = new ArrayList<>();
+
+			while (result.next()) {
+				perfis.add(result.getString("perfil"));
+				salarios.add(result.getDouble("media"));
+			}
+			
+			DTOGrafico dtoGrafico = new DTOGrafico();
+			dtoGrafico.setPerfis(perfis);
+			dtoGrafico.setSalarios(salarios);
+			
+			return dtoGrafico;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+	
+	public DTOGrafico getMediaSalarialFaixaData(Long currentUserId, Date dataInicial, Date dataFinal) {
+		try {
+			String sql = "SELECT AVG(salario) AS media, perfil FROM usuarios WHERE current_user_id = ? and data_nascimento >= ? and  data_nascimento <= ? GROUP BY perfil";
+			PreparedStatement stmt = connection.prepareStatement(sql);
+			stmt.setLong(1, currentUserId);
+			stmt.setDate(2, dataInicial);
+			stmt.setDate(3, dataFinal);
+
+			ResultSet result = stmt.executeQuery();
+
+			List<String> perfis = new ArrayList<>();
+			List<Double> salarios = new ArrayList<>();
+
+			while (result.next()) {
+				perfis.add(result.getString("perfil"));
+				salarios.add(result.getDouble("media"));
+			}
+			
+			DTOGrafico dtoGrafico = new DTOGrafico();
+			dtoGrafico.setPerfis(perfis);
+			dtoGrafico.setSalarios(salarios);
+			
+			return dtoGrafico;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+
 
 	public int getTotalPaginas(Long currentUserId) {
 		try {
@@ -211,7 +273,7 @@ public class DAOUsuario {
 			return 0;
 		}
 	}
-	
+
 	public int getTotalPaginasPesquisa(Long currentUserId, String parteNome) {
 		try {
 			String sql = "SELECT COUNT(id) AS quantidade FROM usuarios WHERE nome ILIKE ? AND admin IS FALSE";
@@ -238,8 +300,7 @@ public class DAOUsuario {
 			return 0;
 		}
 	}
-	
-	
+
 	public int getTotalRegistrosPesquisa(Long currentUserId, String parteNome) {
 		try {
 			String sql = "SELECT COUNT(id) AS quantidade FROM usuarios WHERE nome ILIKE ? AND admin IS FALSE";
@@ -250,14 +311,13 @@ public class DAOUsuario {
 			if (result.next()) {
 				return result.getInt("quantidade");
 			}
-			
+
 			return 0;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return 0;
 		}
 	}
-	
 
 	public List<Usuario> pesquisarUsuarioPorNome(String parteNome, int offset) {
 		List<Usuario> usuarios = new ArrayList<>();
@@ -278,6 +338,7 @@ public class DAOUsuario {
 				usuario.setEmail(resultSet.getString("email"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
+				usuario.setSexo(resultSet.getString("sexo"));
 				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
 				usuario.setSalario(resultSet.getDouble("salario"));
 
@@ -309,6 +370,7 @@ public class DAOUsuario {
 				usuario.setEmail(resultSet.getString("email"));
 				usuario.setLogin(resultSet.getString("login"));
 				usuario.setPerfil(resultSet.getString("perfil"));
+				usuario.setSexo(resultSet.getString("sexo"));
 				usuario.setDataNascimento(resultSet.getDate("data_nascimento"));
 				usuario.setSalario(resultSet.getDouble("salario"));
 
@@ -350,7 +412,7 @@ public class DAOUsuario {
 				if (!loginValido(usuario.getLogin())) {
 					throw new IllegalArgumentException("O login '" + usuario.getLogin() + "' já existe no banco!");
 				}
-				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, sexo, cep, logradouro, bairro, cidade, estado, numero, data_nascimeneto, salario, current_user_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				sql = "INSERT INTO usuarios(nome, email, login, senha, perfil, sexo, cep, logradouro, bairro, cidade, estado, numero, data_nascimento, salario, current_user_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 				setDadosStatement(stmt, usuario, currentUserId);

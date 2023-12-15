@@ -140,7 +140,7 @@ public class ServletUsuario extends HttpServlet {
 			
 			response.sendRedirect("principal/relatorio-usuario.jsp");
 			
-		} else if (acao != null && acao.equals("downloadRelatorio") || acao.equals("downloadRelatorioXsl")) {
+		} else if (acao != null && (acao.equals("downloadRelatorio") || acao.equals("downloadRelatorioXsl"))) {
 			String dataInicial = request.getParameter("dataInicial");
 			String dataFinal = request.getParameter("dataFinal");
 			
@@ -189,9 +189,31 @@ public class ServletUsuario extends HttpServlet {
 			
 			response.setHeader("Content-Disposition", "attachment;filename=relatorio-usuario." + extensao);
 			response.getOutputStream().write(relatorio);
-		}
-		
-		else {
+		} else if (acao != null && acao.equals("gerarGrafico")) {
+			String dataInicial = request.getParameter("dataInicial");
+			String dataFinal = request.getParameter("dataFinal");
+			
+			ObjectMapper mapper = new ObjectMapper();
+			
+			if(dataInicial == null || dataInicial.equals("") || dataFinal == null || dataFinal.equals("")) {
+				String json = mapper.writeValueAsString(daoUsuario.getMediaSalarial(currentUserId)); // Converte em json para retornar para a função AJAX
+
+				response.getWriter().write(json);
+			}else {
+				try {
+					Date dateInicialDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataInicial)));
+					Date dateFinalDt = Date.valueOf(new SimpleDateFormat("yyyy-mm-dd").format(new SimpleDateFormat("dd/mm/yyyy").parse(dataFinal)));
+					
+					String json = mapper.writeValueAsString(daoUsuario.getMediaSalarialFaixaData(currentUserId, dateInicialDt, dateFinalDt));
+					response.getWriter().write(json);
+					
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			
+		} else {
 			response.sendRedirect("principal/usuario.jsp");
 		}
 
@@ -233,6 +255,7 @@ public class ServletUsuario extends HttpServlet {
 			usuario.setCidade(cidade);
 			usuario.setEstado(estado);
 			usuario.setNumero(numero);
+			usuario.setSexo(sexo);
 			usuario.setDataNascimento(dataNascimento);
 			
 			if (JakartaServletFileUpload.isMultipartContent(request)) {

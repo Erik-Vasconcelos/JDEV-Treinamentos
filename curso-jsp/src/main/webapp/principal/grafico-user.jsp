@@ -39,13 +39,7 @@
 														<h5>Cadastro de usuário</h5>
 													</div>
 													<div class="card-block">
-														<form class="form-material"
-															action="<%=request.getContextPath()%>/ServletUsuario"
-															method="get" id="formRelatorio">
-
-															<input type="hidden" name="acao" id="acao"
-																value="relatorio">
-
+														<input type="hidden" id="action" value="<%=request.getContextPath()%>/ServletUsuario">
 															<div class="form-group form-default form-static-label">
 																<input type="text" id="dataInicial" name="dataInicial"
 																	class="form-control"
@@ -64,39 +58,12 @@
 
 															<button
 																class="btn btn-primary btn-round waves-effect waves-light"
-																onclick="verRelatorio();">Ver relatório</button>
-
-															<button
-																class="btn btn-primary btn-round waves-effect waves-light"
-																onclick="downloadRelatorio();">Imprimir
-																relatório</button>
+																onclick="gerarGrafico();">Gerar grafico</button>
 																
-																<button
-																class="btn btn-primary btn-round waves-effect waves-light"
-																onclick="downloadRelatorioXsl();">Relatório em Excel</button>
+														<div>
+															<canvas id="myChart"></canvas>
+														</div>
 
-														</form>
-
-														<table class="table" id="tabelaListUsuarios">
-															<thead>
-																<tr>
-																	<th scope="col">Id</th>
-																	<th scope="col">Nome</th>
-																	<th scope="col">Telefones</th>
-																</tr>
-															</thead>
-															<tbody>
-																<c:forEach items="${sessionScope.relatorio}" var="r">
-																	<tr>
-																		<td><c:out value="${r.id}"></c:out></td>
-																		<td><c:out value="${r.nome}"></c:out></td>
-																		<td><c:forEach items="${r.telefones}" var="t">
-																				<span><c:out value="${t.numero} "></c:out></span>
-																			</c:forEach></td>
-																	</tr>
-																</c:forEach>
-															</tbody>
-														</table>
 
 													</div>
 												</div>
@@ -115,14 +82,60 @@
 	</div>
 
 	<jsp:include page="fragmentos/scripts.jsp"></jsp:include>
+	
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 	<script type="text/javascript">
-		function verRelatorio() {
-			document.getElementById("acao").value = "relatorio";
-			$("formRelatorio").submit();
-
-		}
+	
+		var ctx = document.getElementById('myChart');
+		var myChart;
 		
+		function gerarGrafico(){
+			var action = $("#action").val();
+			var dataInicial = $("#dataInicial").val();
+			var dataFinal = $("#dataFinal").val();
+
+			$.ajax({
+				method: "get",
+				url: action,
+				data: "dataInicial=" + dataInicial + "&dataFinal=" + dataFinal + "&acao=gerarGrafico",
+				success: function (response) {
+
+					let chartStatus = Chart.getChart("myChart");
+					if (chartStatus != undefined) {
+					  chartStatus.destroy();
+					}
+					
+					var json = JSON.parse(response);
+					
+					  myChart = new Chart(ctx, {
+						  
+					    type: 'bar',
+					    data: {
+					      labels: json.perfis,
+					      datasets: [{
+					        label: 'Gráfico de média salarial',
+					        data: json.salarios,
+					        borderWidth: 1
+					      }]
+					    },
+					    options: {
+					      scales: {
+					        y: {
+					          beginAtZero: true
+					        }
+					      }
+					    }
+					  });
+
+				}
+			}).fail(function (xhr, status, errorThrown) {
+				alert(xhr.responseText);
+			});
+			
+		}
+
+	
 		function downloadRelatorio() {
 			document.getElementById("acao").value = "downloadRelatorio";
 			$("formRelatorio").submit();
